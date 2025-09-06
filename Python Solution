@@ -1,0 +1,27 @@
+import pandas as pd
+import re
+file_path="68b1acd44f393_Sample_Support_Emails_Dataset (2).csv"
+df=pd.read_csv(file_path)
+df["text"]=df["subject"].fillna("")+" "+df["body"].fillna("")
+def classify_issue(text):
+    text=text.lower()
+    if "billing" in text or "payment" in text or "invoice" in text:
+        return "Billing Issue"
+    elif "login" in text or "password" in text or "account" in text:
+        return "Login/Account Issue"
+    elif "integration" in text or "api" in text:
+        return "Technical/Integration Issue"
+    elif "subscription" in text or "plan" in text:
+        return "Subscription Query"
+    else:
+        return "General Query"
+df["issue_type"]=df["text"].apply(classify_issue)
+def detect_urgency(text):
+    urgent_keywords=["urgent","immediate","asap","critical","blocked"]
+    return "High" if any(word in text.lower() for word in urgent_keywords) else "Normal"
+df["urgency"]=df["text"].apply(detect_urgency)
+def summarize_text(text,max_words=15):
+    words=text.split()
+    return " ".join(words[:max_words])+("..." if len(words)>max_words else "")
+df["summary"]=df["body"].apply(summarize_text)
+print(df[["sender","subject","issue_type","urgency","summary"]])
